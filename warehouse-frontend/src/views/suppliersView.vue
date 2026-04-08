@@ -24,17 +24,23 @@ onMounted(load)
 </script>
 
 <template>
-  <section>
-    <header class="header">
-      <h1>Suppliers</h1>
-      <button class="btn" type="button" @click="load" :disabled="loading">
-        {{ loading ? 'Loading…' : 'Refresh' }}
-      </button>
+  <div class="page-shell">
+    <header class="page-head">
+      <div class="page-head__text">
+        <h1 class="page-title">Suppliers</h1>
+        <p class="page-desc">Vendors and fulfillment partners you source stock from.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn" type="button" @click="load" :disabled="loading">
+          {{ loading ? 'Loading…' : 'Refresh' }}
+        </button>
+      </div>
     </header>
 
-    <p v-if="error" class="error">{{ error }}</p>
+    <p v-if="error" class="alert alert--error" role="alert">{{ error }}</p>
 
     <DataTable
+      caption="Suppliers"
       :rows="rows"
       :columns="[
         { key: 'id', label: 'ID' },
@@ -44,26 +50,5 @@ onMounted(load)
         { key: 'address', label: 'Address' },
       ]"
     />
-  </section>
+  </div>
 </template>
-
-<style scoped>
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.btn {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.error {
-  color: #d94848;
-}
-</style>
