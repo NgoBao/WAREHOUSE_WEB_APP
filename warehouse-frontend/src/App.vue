@@ -1,85 +1,119 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { computed } from 'vue'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+const displayName = computed(() => auth.user?.name || auth.user?.email || 'User')
+
+function doLogout() {
+  auth.logout()
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="appShell">
+    <header class="topbar">
+      <div class="brand">Warehouse</div>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
+      <nav class="nav">
+        <RouterLink to="/dashboard">Dashboard</RouterLink>
+        <RouterLink to="/products">Products</RouterLink>
+        <RouterLink to="/suppliers">Suppliers</RouterLink>
+        <RouterLink to="/customers">Customers</RouterLink>
       </nav>
-    </div>
-  </header>
 
-  <RouterView />
+      <div class="auth">
+        <template v-if="auth.isAuthed">
+          <span class="user">{{ displayName }}</span>
+          <button class="btn" type="button" @click="doLogout">Logout</button>
+        </template>
+        <template v-else>
+          <RouterLink class="btnLink" to="/login">Login</RouterLink>
+        </template>
+      </div>
+    </header>
+
+    <main class="content">
+      <RouterView />
+    </main>
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.appShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background);
+  position: sticky;
+  top: 0;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.2px;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.nav a {
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-decoration: none;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
+.nav a.router-link-exact-active {
+  background: rgba(65, 184, 131, 0.15);
 }
 
-nav a:first-of-type {
-  border: 0;
+.auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
+.user {
+  opacity: 0.85;
+  font-size: 0.95rem;
+}
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+.btn,
+.btnLink {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.btn:hover,
+.btnLink:hover {
+  border-color: rgba(65, 184, 131, 0.6);
+}
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.content {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 18px 16px;
+  flex: 1;
 }
 </style>

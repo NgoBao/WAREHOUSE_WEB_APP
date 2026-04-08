@@ -11,10 +11,10 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await api.get('/products')
+    const { data } = await api.get('/customers')
     rows.value = Array.isArray(data) ? data : []
   } catch (e) {
-    error.value = e?.response?.data?.message || e?.message || 'Failed to load products'
+    error.value = e?.response?.data?.message || e?.message || 'Failed to load customers'
   } finally {
     loading.value = false
   }
@@ -26,7 +26,7 @@ onMounted(load)
 <template>
   <section>
     <header class="header">
-      <h1>Products</h1>
+      <h1>Customers</h1>
       <button class="btn" type="button" @click="load" :disabled="loading">
         {{ loading ? 'Loading…' : 'Refresh' }}
       </button>
@@ -39,10 +39,9 @@ onMounted(load)
       :columns="[
         { key: 'id', label: 'ID' },
         { key: 'name', label: 'Name' },
-        { key: 'sku', label: 'SKU' },
-        { key: 'quantity', label: 'Qty' },
-        { key: 'price', label: 'Price' },
-        { key: 'cost', label: 'Cost' },
+        { key: 'phone', label: 'Phone' },
+        { key: 'email', label: 'Email' },
+        { key: 'address', label: 'Address' },
       ]"
     />
   </section>

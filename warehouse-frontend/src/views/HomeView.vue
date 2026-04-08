@@ -1,9 +1,8 @@
-<script setup>
-import TheWelcome from '../components/TheWelcome.vue'
-</script>
+<script setup></script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <section>
+    <h1>Welcome</h1>
+    <p>This project is wired to the backend API. Use the navigation above to view data.</p>
+  </section>
 </template>

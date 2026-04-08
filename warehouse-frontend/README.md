@@ -16,11 +16,15 @@ npm install
 
 ## Configure API URL (important)
 
-Right now the API base URL is hard-coded in `src/api/axios.js`:
+The API base URL is configured in `.env` via:
 
-- `http://localhost:5000/api`
+- `VITE_API_BASE_URL` (example: `http://localhost:5000/api`)
 
-If your backend runs on a different host/port, update the `baseURL` in that file.
+To get started:
+
+```bash
+copy .env.example .env
+```
 
 ## Running the frontend
 
@@ -59,4 +63,4 @@ npm run dev
 ## Troubleshooting
 
 - **401 Unauthorized**: the frontend attaches `Authorization: Bearer <token>` from `localStorage.getItem('token')`. Log in first (or clear localStorage if you have an old token).
-- **CORS errors**: ensure the backend is running and reachable at the URL in `src/api/axios.js`.
+- **CORS errors**: ensure the backend is running and reachable at the URL in `VITE_API_BASE_URL`.
