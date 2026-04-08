@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 require("./config/db"); // connect sqlite
+const { runMigrations } = require("./config/migrations");
 
 // Create tables
 const { createUserTable } = require("./models/userModel");
@@ -21,6 +22,11 @@ createPurchaseOrderTable();
 createPurchaseItemTable();
 createSalesOrderTable();
 createSalesItemTable();
+
+// Add/upgrade audit columns + triggers (for existing DBs)
+runMigrations().catch((err) => {
+  console.error("DB migrations failed:", err.message);
+});
 
 const app = express();
 app.use(cors());

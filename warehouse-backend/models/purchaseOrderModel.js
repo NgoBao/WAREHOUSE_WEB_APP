@@ -8,6 +8,8 @@ const createPurchaseOrderTable = () => {
       total_amount REAL DEFAULT 0,
       status TEXT CHECK(status IN ('pending','received')) DEFAULT 'pending',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME,
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
     )
   `);
@@ -34,7 +36,7 @@ const setPurchaseTotal = (purchaseId, total, cb) => {
 };
 
 const getPurchaseOrder = (id, cb) => {
-  db.get(`SELECT * FROM purchase_orders WHERE id = ?`, [id], cb);
+  db.get(`SELECT * FROM purchase_orders WHERE id = ? AND deleted_at IS NULL`, [id], cb);
 };
 
 const listPurchaseOrders = (cb) => {
@@ -43,6 +45,7 @@ const listPurchaseOrders = (cb) => {
     SELECT po.*, s.name AS supplier_name
     FROM purchase_orders po
     JOIN suppliers s ON po.supplier_id = s.id
+    WHERE po.deleted_at IS NULL
     ORDER BY po.id DESC
     `,
     [],

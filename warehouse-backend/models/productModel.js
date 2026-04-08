@@ -11,6 +11,9 @@ const createProductTable = () => {
       cost REAL NOT NULL,
       quantity INTEGER DEFAULT 0,
       supplier_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME,
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL
     )
   `);
@@ -22,6 +25,7 @@ const listProducts = (cb) => {
     SELECT p.*, s.name AS supplier_name
     FROM products p
     LEFT JOIN suppliers s ON p.supplier_id = s.id
+    WHERE p.deleted_at IS NULL
     ORDER BY p.id DESC
     `,
     [],
@@ -30,7 +34,7 @@ const listProducts = (cb) => {
 };
 
 const getProduct = (id, cb) => {
-  db.get(`SELECT * FROM products WHERE id = ?`, [id], cb);
+  db.get(`SELECT * FROM products WHERE id = ? AND deleted_at IS NULL`, [id], cb);
 };
 
 const createProduct = (data, cb) => {
@@ -68,7 +72,7 @@ const updateProduct = (id, data, cb) => {
   db.run(
     `UPDATE products
      SET name = ?, sku = ?, description = ?, price = ?, cost = ?, quantity = ?, supplier_id = ?
-     WHERE id = ?`,
+     WHERE id = ? AND deleted_at IS NULL`,
     [name, sku, description, price, cost, quantity, supplier_id, id],
     function (err) {
       cb(err, this?.changes);
@@ -77,14 +81,14 @@ const updateProduct = (id, data, cb) => {
 };
 
 const deleteProduct = (id, cb) => {
-  db.run(`DELETE FROM products WHERE id = ?`, [id], function (err) {
+  db.run(`UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`, [id], function (err) {
     cb(err, this?.changes);
   });
 };
 
 const addStock = (productId, qty, cb) => {
   db.run(
-    `UPDATE products SET quantity = quantity + ? WHERE id = ?`,
+    `UPDATE products SET quantity = quantity + ? WHERE id = ? AND deleted_at IS NULL`,
     [qty, productId],
     function (err) {
       cb(err, this?.changes);
@@ -93,13 +97,13 @@ const addStock = (productId, qty, cb) => {
 };
 
 const subtractStockIfEnough = (productId, qty, cb) => {
-  db.get(`SELECT quantity FROM products WHERE id = ?`, [productId], (err, row) => {
+  db.get(`SELECT quantity FROM products WHERE id = ? AND deleted_at IS NULL`, [productId], (err, row) => {
     if (err) return cb(err);
     if (!row) return cb(new Error("Product not found"));
     if (row.quantity < qty) return cb(new Error("Insufficient stock"));
 
     db.run(
-      `UPDATE products SET quantity = quantity - ? WHERE id = ?`,
+      `UPDATE products SET quantity = quantity - ? WHERE id = ? AND deleted_at IS NULL`,
       [qty, productId],
       function (err2) {
         cb(err2, this?.changes);

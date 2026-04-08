@@ -8,6 +8,9 @@ const createPurchaseItemTable = () => {
       product_id INTEGER NOT NULL,
       quantity INTEGER NOT NULL,
       price REAL NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME,
       FOREIGN KEY (purchase_id) REFERENCES purchase_orders(id) ON DELETE CASCADE,
       FOREIGN KEY (product_id) REFERENCES products(id)
     )
@@ -31,7 +34,7 @@ const listPurchaseItems = (purchase_id, cb) => {
     SELECT pi.*, p.name AS product_name
     FROM purchase_items pi
     JOIN products p ON pi.product_id = p.id
-    WHERE pi.purchase_id = ?
+    WHERE pi.purchase_id = ? AND pi.deleted_at IS NULL
     ORDER BY pi.id
     `,
     [purchase_id],

@@ -8,6 +8,9 @@ const createSalesItemTable = () => {
       product_id INTEGER NOT NULL,
       quantity INTEGER NOT NULL,
       price REAL NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME,
       FOREIGN KEY (sales_id) REFERENCES sales_orders(id) ON DELETE CASCADE,
       FOREIGN KEY (product_id) REFERENCES products(id)
     )
@@ -31,7 +34,7 @@ const listSalesItems = (sales_id, cb) => {
     SELECT si.*, p.name AS product_name
     FROM sales_items si
     JOIN products p ON si.product_id = p.id
-    WHERE si.sales_id = ?
+    WHERE si.sales_id = ? AND si.deleted_at IS NULL
     ORDER BY si.id
     `,
     [sales_id],

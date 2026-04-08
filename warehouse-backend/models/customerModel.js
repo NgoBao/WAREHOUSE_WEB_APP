@@ -7,17 +7,20 @@ const createCustomerTable = () => {
       name TEXT NOT NULL,
       phone TEXT,
       email TEXT,
-      address TEXT
+      address TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME
     )
   `);
 };
 
 const listCustomers = (cb) => {
-  db.all(`SELECT * FROM customers ORDER BY id DESC`, [], cb);
+  db.all(`SELECT * FROM customers WHERE deleted_at IS NULL ORDER BY id DESC`, [], cb);
 };
 
 const getCustomer = (id, cb) => {
-  db.get(`SELECT * FROM customers WHERE id = ?`, [id], cb);
+  db.get(`SELECT * FROM customers WHERE id = ? AND deleted_at IS NULL`, [id], cb);
 };
 
 const createCustomer = (data, cb) => {
@@ -38,7 +41,7 @@ const updateCustomer = (id, data, cb) => {
   db.run(
     `UPDATE customers
      SET name = ?, phone = ?, email = ?, address = ?
-     WHERE id = ?`,
+     WHERE id = ? AND deleted_at IS NULL`,
     [name, phone, email, address, id],
     function (err) {
       cb(err, this?.changes);
@@ -47,7 +50,7 @@ const updateCustomer = (id, data, cb) => {
 };
 
 const deleteCustomer = (id, cb) => {
-  db.run(`DELETE FROM customers WHERE id = ?`, [id], function (err) {
+  db.run(`UPDATE customers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`, [id], function (err) {
     cb(err, this?.changes);
   });
 };

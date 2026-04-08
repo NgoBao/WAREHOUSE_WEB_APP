@@ -8,18 +8,20 @@ const createUserTable = () => {
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       role TEXT CHECK(role IN ('admin','staff')) NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME
     )
   `);
 };
 
 const findByEmail = (email, cb) => {
-    db.get(`SELECT * FROM users WHERE email = ?`, [email], cb);
+    db.get(`SELECT * FROM users WHERE email = ? AND deleted_at IS NULL`, [email], cb);
 };
 
 const findById = (id, cb) => {
     db.get(
-        `SELECT id, name, email, role, created_at FROM users WHERE id = ?`,
+        `SELECT id, name, email, role, created_at, modified_at FROM users WHERE id = ? AND deleted_at IS NULL`,
         [id],
         cb
     );
@@ -27,7 +29,7 @@ const findById = (id, cb) => {
 
 const listUsers = (cb) => {
     db.all(
-        `SELECT id, name, email, role, created_at FROM users ORDER BY id DESC`,
+        `SELECT id, name, email, role, created_at, modified_at FROM users WHERE deleted_at IS NULL ORDER BY id DESC`,
         [],
         cb
     );
@@ -54,7 +56,7 @@ const updateUserRole = (id, role, cb) => {
 };
 
 const deleteUser = (id, cb) => {
-    db.run(`DELETE FROM users WHERE id = ?`, [id], function (err) {
+    db.run(`UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`, [id], function (err) {
         cb(err, this?.changes);
     });
 };

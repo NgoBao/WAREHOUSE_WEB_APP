@@ -8,6 +8,8 @@ const createSalesOrderTable = () => {
       total_amount REAL DEFAULT 0,
       status TEXT CHECK(status IN ('pending','completed')) DEFAULT 'pending',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME,
       FOREIGN KEY (customer_id) REFERENCES customers(id)
     )
   `);
@@ -34,7 +36,7 @@ const setSalesTotal = (salesId, total, cb) => {
 };
 
 const getSalesOrder = (id, cb) => {
-  db.get(`SELECT * FROM sales_orders WHERE id = ?`, [id], cb);
+  db.get(`SELECT * FROM sales_orders WHERE id = ? AND deleted_at IS NULL`, [id], cb);
 };
 
 const listSalesOrders = (cb) => {
@@ -43,6 +45,7 @@ const listSalesOrders = (cb) => {
     SELECT so.*, c.name AS customer_name
     FROM sales_orders so
     JOIN customers c ON so.customer_id = c.id
+    WHERE so.deleted_at IS NULL
     ORDER BY so.id DESC
     `,
     [],

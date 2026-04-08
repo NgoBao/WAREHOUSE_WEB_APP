@@ -7,17 +7,20 @@ const createSupplierTable = () => {
       name TEXT NOT NULL,
       phone TEXT,
       email TEXT,
-      address TEXT
+      address TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME
     )
   `);
 };
 
 const listSuppliers = (cb) => {
-  db.all(`SELECT * FROM suppliers ORDER BY id DESC`, [], cb);
+  db.all(`SELECT * FROM suppliers WHERE deleted_at IS NULL ORDER BY id DESC`, [], cb);
 };
 
 const getSupplier = (id, cb) => {
-  db.get(`SELECT * FROM suppliers WHERE id = ?`, [id], cb);
+  db.get(`SELECT * FROM suppliers WHERE id = ? AND deleted_at IS NULL`, [id], cb);
 };
 
 const createSupplier = (data, cb) => {
@@ -38,7 +41,7 @@ const updateSupplier = (id, data, cb) => {
   db.run(
     `UPDATE suppliers
      SET name = ?, phone = ?, email = ?, address = ?
-     WHERE id = ?`,
+     WHERE id = ? AND deleted_at IS NULL`,
     [name, phone, email, address, id],
     function (err) {
       cb(err, this?.changes);
@@ -47,7 +50,7 @@ const updateSupplier = (id, data, cb) => {
 };
 
 const deleteSupplier = (id, cb) => {
-  db.run(`DELETE FROM suppliers WHERE id = ?`, [id], function (err) {
+  db.run(`UPDATE suppliers SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`, [id], function (err) {
     cb(err, this?.changes);
   });
 };
