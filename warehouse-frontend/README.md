@@ -1,44 +1,62 @@
-# warehouse-frontend
+# Warehouse Frontend (Vue 3 + Vite)
 
-This template should help get you started developing with Vue 3 in Vite.
+This is the frontend web app for the Warehouse project.
 
-## Recommended IDE Setup
+## Prerequisites
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Node.js **20+** recommended
+- npm (comes with Node)
 
-## Recommended Browser Setup
+## Setup
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
+```bash
+cd warehouse-frontend
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+## Configure API URL (important)
 
-```sh
+Right now the API base URL is hard-coded in `src/api/axios.js`:
+
+- `http://localhost:5000/api`
+
+If your backend runs on a different host/port, update the `baseURL` in that file.
+
+## Running the frontend
+
+```bash
 npm run dev
 ```
 
-### Compile and Minify for Production
+Vite will print the local dev URL (commonly `http://localhost:5173`).
 
-```sh
-npm run build
-```
+## Linting / formatting
 
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
+```bash
 npm run lint
+npm run format
 ```
+
+## Typical local dev flow
+
+1. Start the backend:
+
+```bash
+cd warehouse-backend
+npm install
+copy .env.example .env
+npm run dev
+```
+
+2. Start the frontend:
+
+```bash
+cd warehouse-frontend
+npm install
+npm run dev
+```
+
+## Troubleshooting
+
+- **401 Unauthorized**: the frontend attaches `Authorization: Bearer <token>` from `localStorage.getItem('token')`. Log in first (or clear localStorage if you have an old token).
+- **CORS errors**: ensure the backend is running and reachable at the URL in `src/api/axios.js`.

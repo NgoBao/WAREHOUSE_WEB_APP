@@ -1,0 +1,63 @@
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data / temp
+pids/
+*.pid
+*.pid.lock
+tmp/
+temp/
+.tmp/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.swn
+*.orig
+
+# Editor/IDE settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Build outputs
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+
+# Caches
+.cache/
+.eslintcache
+.parcel-cache/
+.turbo/
+.vite/
+
+# SQLite / local databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+
+# Optional: local uploads/storage (uncomment if you store files here)
+# uploads/
+# storage/
