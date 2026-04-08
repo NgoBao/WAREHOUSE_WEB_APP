@@ -41,6 +41,10 @@ router.beforeEach((to) => {
   if (to.meta.public) return true
   const auth = useAuthStore()
   if (!auth.isAuthed) return { name: 'login', query: { next: to.fullPath } }
+  if (to.meta?.role) {
+    const allowed = Array.isArray(to.meta.role) ? to.meta.role : [to.meta.role]
+    if (!allowed.includes(auth.user?.role)) return { name: 'dashboard' }
+  }
   return true
 })
 

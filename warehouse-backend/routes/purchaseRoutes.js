@@ -5,11 +5,12 @@ const { create, receive, list, detail } = require("../controllers/purchaseContro
 
 router.use(auth);
 
-router.get("/", list);
-router.get("/:id", detail);
-router.post("/", create);
+// Operational workflow: staff + admin
+router.get("/", role("admin", "staff"), list);
+router.get("/:id", role("admin", "staff"), detail);
+router.post("/", role("admin", "staff"), create);
 
-// receiving stock: admin only (common in classes)
-router.put("/:id/receive", role("admin"), receive);
+// Receiving stock is a warehouse action; allow staff + admin
+router.put("/:id/receive", role("admin", "staff"), receive);
 
 module.exports = router;
