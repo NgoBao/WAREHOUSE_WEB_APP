@@ -309,11 +309,15 @@ function doLogout() {
 }
 
 .sidebar__footer {
+  margin-top: auto;
   padding: 0.875rem;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
+  position: sticky;
+  bottom: 0;
+  background: var(--surface-sidebar);
 }
 
 .sidebar__user {
