@@ -53,21 +53,13 @@ When the server starts it will:
 - Connect to SQLite at `warehouse-backend/warehouse.db`
 - Create the required tables (if they don’t exist)
 
-## Seeding sample data (optional)
+## Seeding sample data
 
-This project includes a seed script that inserts demo data (users, suppliers, customers, products, purchase orders, sales orders).
+**Automatic (first run):** If the `users` table is empty when the server starts, it runs the demo seed for you (same data as `node seed.js`). You can log in immediately with `admin@test.com` / `123456`.
 
-1. Start the API once to ensure tables exist:
+**Manual:** To re-seed from scratch, stop the server, delete `warehouse.db`, start the server again (or run `node seed.js` after tables exist — only safe on an empty DB).
 
-```bash
-npm run dev
-```
-
-2. In another terminal (or after stopping the server), run:
-
-```bash
-node seed.js
-```
+The seed inserts users, suppliers, customers, products, purchase orders, and sales orders.
 
 ### Default login credentials (seeded)
 
@@ -82,13 +74,14 @@ Base URL: `http://localhost:5000`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
-- `CRUD /api/users`
-- `CRUD /api/suppliers`
-- `CRUD /api/customers`
-- `CRUD /api/products`
-- `CRUD /api/purchases`
-- `CRUD /api/sales`
-- `GET /api/dashboard/*` (dashboard endpoints)
+- `GET|PUT|DELETE /api/users` (admin)
+- `GET|POST|PUT|DELETE /api/suppliers` (read: staff+admin; write/delete: admin)
+- `GET|POST|PUT|DELETE /api/customers` (delete: admin only)
+- `GET|POST|PUT|DELETE /api/products` (read: staff+admin; write/delete: admin)
+- **`/api/purchases`**: `GET /` list, `GET /:id` detail + line items, `POST /` create PO, `PUT /:id/receive` receive into stock (staff+admin)
+- **`/api/sales`**: `GET /` list, `GET /:id` detail + lines, `POST /` create order, `PUT /:id/complete` complete and deduct stock (staff+admin)
+- `GET /api/dashboard/summary` (admin — counts, completed sales total, low stock)
+- `GET /api/dashboard/staff-summary` (staff + admin — catalog size, pending PO/sales counts, low stock; no revenue rollup)
 
 ## Troubleshooting
 

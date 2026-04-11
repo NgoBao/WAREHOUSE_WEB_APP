@@ -36,7 +36,16 @@ const setSalesTotal = (salesId, total, cb) => {
 };
 
 const getSalesOrder = (id, cb) => {
-  db.get(`SELECT * FROM sales_orders WHERE id = ? AND deleted_at IS NULL`, [id], cb);
+  db.get(
+    `
+    SELECT so.*, c.name AS customer_name
+    FROM sales_orders so
+    JOIN customers c ON so.customer_id = c.id
+    WHERE so.id = ? AND so.deleted_at IS NULL
+    `,
+    [id],
+    cb
+  );
 };
 
 const listSalesOrders = (cb) => {

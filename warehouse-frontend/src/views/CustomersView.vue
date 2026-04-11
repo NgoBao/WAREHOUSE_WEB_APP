@@ -127,6 +127,11 @@ onMounted(load)
       </div>
     </header>
 
+    <p v-if="loading && rows.length === 0" class="alert alert--note" role="status">Loading customers…</p>
+    <p v-else-if="!loading && rows.length === 0" class="alert alert--note" role="status">
+      No customers yet. Add a record or run the backend seeder for sample buyers.
+    </p>
+
     <p v-if="error" class="alert alert--error" role="alert">{{ error }}</p>
 
     <div class="table-card">
@@ -157,7 +162,7 @@ onMounted(load)
                 </button>
               </td>
             </tr>
-            <tr v-if="rows.length === 0">
+            <tr v-if="rows.length === 0 && !loading">
               <td class="empty" colspan="6">No results</td>
             </tr>
           </tbody>

@@ -23,6 +23,8 @@ const pageTitle = computed(() => {
   if (n === 'products') return 'Products'
   if (n === 'suppliers') return 'Suppliers'
   if (n === 'customers') return 'Customers'
+  if (n === 'purchases') return 'Purchases'
+  if (n === 'sales') return 'Sales'
   return 'Warehouse'
 })
 
@@ -111,6 +113,30 @@ function doLogout() {
                 </svg>
               </span>
               <span>Customers</span>
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink class="sidebar__link" to="/purchases" active-class="sidebar__link--active">
+              <span class="sidebar__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </span>
+              <span>Purchases</span>
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink class="sidebar__link" to="/sales" active-class="sidebar__link--active">
+              <span class="sidebar__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+              </span>
+              <span>Sales</span>
             </RouterLink>
           </li>
         </ul>

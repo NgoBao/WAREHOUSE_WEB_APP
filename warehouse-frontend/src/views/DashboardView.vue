@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import api from '@/api/axios'
 import { useAuthStore } from '@/stores/auth'
 import DataTable from '@/components/DataTable.vue'
@@ -10,17 +10,26 @@ const loading = ref(false)
 const error = ref('')
 const summary = ref(null)
 
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+
+const formattedRevenue = computed(() => {
+  if (!summary.value || auth.isAdmin !== true) return ''
+  return money.format(Number(summary.value.totalSales) || 0)
+})
+
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    if (!auth.isAdmin) {
-      summary.value = null
-      return
+    if (auth.isAdmin) {
+      const { data } = await api.get('/dashboard/summary')
+      summary.value = { ...data, _variant: 'admin' }
+    } else {
+      const { data } = await api.get('/dashboard/staff-summary')
+      summary.value = { ...data, _variant: 'staff' }
     }
-    const { data } = await api.get('/dashboard/summary')
-    summary.value = data
   } catch (e) {
+    summary.value = null
     error.value = e?.response?.data?.message || e?.message || 'Failed to load dashboard'
   } finally {
     loading.value = false
@@ -36,7 +45,13 @@ onMounted(load)
       <div class="page-head__text">
         <h1 class="page-title">Dashboard</h1>
         <p class="page-desc">
-          Snapshot of inventory, partners, and sales. Refresh to pull the latest numbers from the server.
+          <template v-if="auth.isAdmin">
+            Snapshot of inventory, partners, and sales. Refresh to pull the latest numbers from the server.
+          </template>
+          <template v-else>
+            Operational snapshot for warehouse staff: catalog size, open orders, and reorder alerts. Revenue totals are
+            visible to administrators only.
+          </template>
         </p>
       </div>
       <div class="page-actions">
@@ -46,13 +61,11 @@ onMounted(load)
       </div>
     </header>
 
-    <p v-if="!auth.isAdmin" class="alert alert--note" role="status">
-      You’re signed in as <strong>{{ auth.user?.role }}</strong>. Dashboard metrics and low-stock tables are visible to administrators only.
-    </p>
+    <p v-if="loading && !summary" class="alert alert--note" role="status">Loading dashboard…</p>
 
     <p v-if="error" class="alert alert--error" role="alert">{{ error }}</p>
 
-    <div v-if="auth.isAdmin && summary" class="kpi-grid" role="list">
+    <div v-if="summary && summary._variant === 'admin'" class="kpi-grid" role="list">
       <article class="kpi-card" role="listitem">
         <div class="kpi-card__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -92,14 +105,53 @@ onMounted(load)
             <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
         </div>
-        <div class="kpi-card__label">Total sales</div>
-        <div class="kpi-card__value">{{ summary.totalSales }}</div>
+        <div class="kpi-card__label">Total sales (completed)</div>
+        <div class="kpi-card__value kpi-card__value--money">{{ formattedRevenue }}</div>
       </article>
     </div>
 
-    <section v-if="auth.isAdmin && summary" class="low-stock">
+    <div v-if="summary && summary._variant === 'staff'" class="kpi-grid kpi-grid--staff" role="list">
+      <article class="kpi-card" role="listitem">
+        <div class="kpi-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            <path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" />
+          </svg>
+        </div>
+        <div class="kpi-card__label">Products in catalog</div>
+        <div class="kpi-card__value">{{ summary.totalProducts }}</div>
+      </article>
+      <article class="kpi-card" role="listitem">
+        <div class="kpi-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 16h6M19 13v6" />
+            <path d="M8 21H4a2 2 0 0 1-2-2V7l8-4 8 4v5" />
+            <rect x="2" y="7" width="20" height="14" rx="2" />
+          </svg>
+        </div>
+        <div class="kpi-card__label">Pending purchases</div>
+        <div class="kpi-card__value">{{ summary.pendingPurchases }}</div>
+      </article>
+      <article class="kpi-card" role="listitem">
+        <div class="kpi-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+        </div>
+        <div class="kpi-card__label">Pending sales</div>
+        <div class="kpi-card__value">{{ summary.pendingSales }}</div>
+      </article>
+    </div>
+
+    <section v-if="summary" class="low-stock">
       <h2 class="panel__title">Low stock (≤ 5)</h2>
+      <p v-if="!summary.lowStock?.length" class="alert alert--note" role="status">
+        No SKUs are at or below the threshold. Nice work keeping shelves full.
+      </p>
       <DataTable
+        v-else
         caption="Products at or below reorder threshold"
         :rows="summary.lowStock || []"
         :columns="[
@@ -123,6 +175,20 @@ onMounted(load)
 
 .low-stock :deep(.table-card) {
   border-radius: var(--radius-lg);
+}
+
+.kpi-grid--staff {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .kpi-grid--staff {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi-card__value--money {
+  font-size: 1.375rem;
 }
 
 .kpi-card__icon svg {

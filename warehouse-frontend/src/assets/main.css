@@ -41,11 +41,44 @@ a {
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
   line-height: 1.2;
+}
+
+/* Order / workflow status (purchases, sales) */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+}
+
+.status-chip--pending {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.status-chip--success {
+  border-color: #a7f3d0;
+  background: var(--success-muted);
+  color: #065f46;
+}
+
+.status-chip--neutral {
+  border-color: var(--border-subtle);
+  background: var(--surface-muted);
+  color: var(--text-muted);
 }
 
 .page-desc {

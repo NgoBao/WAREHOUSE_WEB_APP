@@ -7,8 +7,8 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
-const email = ref('admin@test.com')
-const password = ref('123456')
+const email = ref('')
+const password = ref('')
 const error = ref('')
 const loading = ref(false)
 
@@ -49,7 +49,10 @@ async function submit() {
       </div>
 
       <h1 id="sign-in-heading" class="auth-card__title">Sign in</h1>
-      <p class="auth-card__hint">Use a seeded account if you ran the backend seeder.</p>
+      <p class="auth-card__hint">
+        Demo accounts: <strong>admin@test.com</strong> or <strong>staff1@test.com</strong> — password
+        <strong>123456</strong>. The API seeds this data automatically the first time it starts with an empty database.
+      </p>
 
       <form class="form" @submit.prevent="submit" novalidate>
         <div class="field">
@@ -61,6 +64,7 @@ async function submit() {
             autocomplete="email"
             required
             class="field__input"
+            placeholder="you@company.com"
           />
         </div>
 
@@ -73,6 +77,7 @@ async function submit() {
             autocomplete="current-password"
             required
             class="field__input"
+            placeholder="••••••••"
           />
         </div>
 
@@ -163,6 +168,16 @@ async function submit() {
   margin-top: 0.35rem;
   font-size: 0.9375rem;
   color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.hint-code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  padding: 0.08rem 0.3rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
 }
 
 .form {

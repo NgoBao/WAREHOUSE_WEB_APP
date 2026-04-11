@@ -36,7 +36,16 @@ const setPurchaseTotal = (purchaseId, total, cb) => {
 };
 
 const getPurchaseOrder = (id, cb) => {
-  db.get(`SELECT * FROM purchase_orders WHERE id = ? AND deleted_at IS NULL`, [id], cb);
+  db.get(
+    `
+    SELECT po.*, s.name AS supplier_name
+    FROM purchase_orders po
+    JOIN suppliers s ON po.supplier_id = s.id
+    WHERE po.id = ? AND po.deleted_at IS NULL
+    `,
+    [id],
+    cb
+  );
 };
 
 const listPurchaseOrders = (cb) => {

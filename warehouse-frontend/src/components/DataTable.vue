@@ -4,6 +4,8 @@ defineProps({
   columns: { type: Array, required: true }, // [{ key, label }]
   keyField: { type: String, default: 'id' },
   caption: { type: String, default: '' },
+  showActions: { type: Boolean, default: false },
+  actionsLabel: { type: String, default: 'Actions' },
 })
 </script>
 
@@ -15,6 +17,7 @@ defineProps({
         <thead>
           <tr>
             <th v-for="c in columns" :key="c.key" scope="col">{{ c.label }}</th>
+            <th v-if="showActions" scope="col" class="th-actions">{{ actionsLabel }}</th>
           </tr>
         </thead>
         <tbody>
@@ -22,9 +25,12 @@ defineProps({
             <td v-for="c in columns" :key="c.key">
               {{ r?.[c.key] ?? '' }}
             </td>
+            <td v-if="showActions" class="td-actions">
+              <slot name="actions" :row="r" />
+            </td>
           </tr>
           <tr v-if="rows.length === 0">
-            <td class="empty" :colspan="columns.length">No results</td>
+            <td class="empty" :colspan="columns.length + (showActions ? 1 : 0)">No results</td>
           </tr>
         </tbody>
       </table>
@@ -76,6 +82,27 @@ th {
   color: var(--text-muted);
   background: var(--surface-muted);
   white-space: nowrap;
+}
+
+.th-actions {
+  width: 1%;
+}
+
+.td-actions {
+  vertical-align: middle;
+  white-space: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.td-actions :deep(.btn-sm) {
+  margin-right: 0.35rem;
+}
+
+.td-actions :deep(.btn-sm:last-child) {
+  margin-right: 0;
 }
 
 tbody tr:last-child td {

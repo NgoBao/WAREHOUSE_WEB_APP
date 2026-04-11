@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import api from '@/api/axios'
 import { useAuthStore } from '@/stores/auth'
+import DataTable from '@/components/DataTable.vue'
 
 const auth = useAuthStore()
 
@@ -148,43 +149,32 @@ onMounted(load)
       </div>
     </header>
 
+    <p v-if="loading && rows.length === 0" class="alert alert--note" role="status">Loading products…</p>
+    <p v-else-if="!loading && rows.length === 0" class="alert alert--note" role="status">
+      No products yet. Admins can add SKUs here, or run the backend seeder for demo inventory.
+    </p>
+
     <p v-if="error" class="alert alert--error" role="alert">{{ error }}</p>
 
-    <div class="table-card">
-      <div class="table-scroll" role="region" aria-label="Products table" tabindex="0">
-        <table>
-          <caption class="sr-only">Product catalog</caption>
-          <thead>
-            <tr>
-              <th scope="col">ID</th>
-              <th scope="col">Name</th>
-              <th scope="col">SKU</th>
-              <th scope="col">Qty</th>
-              <th scope="col">Price</th>
-              <th scope="col">Cost</th>
-              <th v-if="auth.isAdmin" scope="col" class="th-actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="r in rows" :key="r.id">
-              <td>{{ r?.id ?? '' }}</td>
-              <td>{{ r?.name ?? '' }}</td>
-              <td>{{ r?.sku ?? '' }}</td>
-              <td>{{ r?.quantity ?? '' }}</td>
-              <td>{{ r?.price ?? '' }}</td>
-              <td>{{ r?.cost ?? '' }}</td>
-              <td v-if="auth.isAdmin" class="td-actions">
-                <button class="btn btn-sm" type="button" @click="openEdit(r)">Edit</button>
-                <button class="btn btn-sm btn-danger" type="button" @click="remove(r)">Delete</button>
-              </td>
-            </tr>
-            <tr v-if="rows.length === 0">
-              <td class="empty" :colspan="auth.isAdmin ? 7 : 6">No results</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTable
+      v-if="rows.length > 0 || loading"
+      caption="Product catalog"
+      :rows="rows"
+      :columns="[
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Name' },
+        { key: 'sku', label: 'SKU' },
+        { key: 'quantity', label: 'Qty' },
+        { key: 'price', label: 'Price' },
+        { key: 'cost', label: 'Cost' },
+      ]"
+      :show-actions="auth.isAdmin"
+    >
+      <template #actions="{ row: r }">
+        <button class="btn btn-sm" type="button" @click="openEdit(r)">Edit</button>
+        <button class="btn btn-sm btn-danger" type="button" @click="remove(r)">Delete</button>
+      </template>
+    </DataTable>
 
     <div v-if="showForm" class="modal" role="dialog" aria-modal="true" aria-label="Product form" @click.self="closeForm">
       <div class="modal__card">
@@ -238,57 +228,6 @@ onMounted(load)
 </template>
 
 <style scoped>
-/* Reuse the DataTable look so pages stay consistent */
-.table-card {
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.table-scroll {
-  width: 100%;
-  overflow: auto;
-  max-width: 100%;
-}
-
-table {
-  width: 100%;
-  min-width: 760px;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-th,
-td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border-subtle);
-  text-align: left;
-  vertical-align: middle;
-  color: var(--text-primary);
-}
-
-th {
-  font-weight: 600;
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: var(--surface-muted);
-  white-space: nowrap;
-}
-
-.th-actions {
-  width: 1%;
-}
-
-.td-actions {
-  display: flex;
-  gap: 0.5rem;
-  white-space: nowrap;
-}
-
 .btn-sm {
   padding: 0.35rem 0.6rem;
   font-size: 0.8125rem;
@@ -298,25 +237,6 @@ th {
   border-color: #fecaca;
   background: var(--danger-muted);
   color: #991b1b;
-}
-
-.empty {
-  text-align: center;
-  padding: 1.5rem 1rem;
-  color: var(--text-muted);
-  font-size: 0.9375rem;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 .modal {
