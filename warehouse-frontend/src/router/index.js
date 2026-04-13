@@ -44,6 +44,12 @@ const router = createRouter({
       name: 'sales',
       component: () => import('@/views/SalesView.vue'),
     },
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('@/views/UsersView.vue'),
+      meta: { role: 'admin' },
+    },
   ],
 })
 

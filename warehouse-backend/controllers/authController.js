@@ -7,7 +7,7 @@ const {
 } = require("../models/userModel");
 
 const register = (req, res) => {
-  const { name, email, password, role = "staff" } = req.body;
+  const { name, email, password } = req.body;
   if (!name || !email || !password) return res.status(400).json({ message: "Missing fields" });
 
   findByEmail(email, async (err, existing) => {
@@ -15,7 +15,7 @@ const register = (req, res) => {
     if (existing) return res.status(409).json({ message: "Email already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
-    insertUser(name, email, hashed, role, (err2, id) => {
+    insertUser(name, email, hashed, "staff", (err2, id) => {
       if (err2) return res.status(500).json({ message: "DB error", err: err2.message });
 
       findById(id, (err3, user) => {

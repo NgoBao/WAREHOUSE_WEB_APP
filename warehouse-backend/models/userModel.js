@@ -47,10 +47,20 @@ const insertUser = (name, email, hashedPassword, role, cb) => {
 
 const updateUserRole = (id, role, cb) => {
     db.run(
-        `UPDATE users SET role = ? WHERE id = ?`,
+        `UPDATE users SET role = ? WHERE id = ? AND deleted_at IS NULL`,
         [role, id],
         function (err) {
             cb(err, this?.changes);
+        }
+    );
+};
+
+const countActiveAdmins = (cb) => {
+    db.get(
+        `SELECT COUNT(*) AS c FROM users WHERE role = 'admin' AND deleted_at IS NULL`,
+        [],
+        (err, row) => {
+            cb(err, row?.c ?? 0);
         }
     );
 };
@@ -69,4 +79,5 @@ module.exports = {
     insertUser,
     updateUserRole,
     deleteUser,
+    countActiveAdmins,
 };
