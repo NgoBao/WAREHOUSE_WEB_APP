@@ -4,6 +4,20 @@ const { createSalesOrder, setSalesTotal, getSalesOrder, listSalesOrders, markSal
 const { addSalesItem, listSalesItems } = require("../models/salesItemModel");
 const { subtractStockIfEnough } = require("../models/productModel");
 
+function getProductSellPrice(productId, cb) {
+  db.get(
+    `SELECT price FROM products WHERE id = ? AND deleted_at IS NULL`,
+    [productId],
+    (err, row) => {
+      if (err) return cb(err);
+      if (!row) return cb(new Error("Product not found"));
+      const price = Number(row.price);
+      if (Number.isNaN(price)) return cb(new Error("Product selling price is invalid"));
+      cb(null, price);
+    }
+  );
+}
+
 const create = (req, res) => {
   const { customer_id, items } = req.body || {};
   if (!customer_id || !Array.isArray(items) || items.length === 0) {
@@ -26,36 +40,60 @@ const create = (req, res) => {
       items.forEach((it) => {
         const product_id = it.product_id;
         const quantity = Number(it.quantity);
-        const price = Number(it.price);
+        const priceRaw = it.price;
 
-        if (!product_id || !quantity || !price) {
+        if (!product_id || !quantity) {
           failed = true;
           db.run("ROLLBACK");
-          return res.status(400).json({ message: "Each item needs product_id, quantity, price" });
+          return res.status(400).json({ message: "Each item needs product_id and quantity" });
         }
 
-        total += quantity * price;
-
-        addSalesItem(salesId, product_id, quantity, price, (err2) => {
+        const finalizeLine = (unitPrice) => {
           if (failed) return;
-          if (err2) {
+          if (Number.isNaN(unitPrice) || unitPrice < 0) {
             failed = true;
             db.run("ROLLBACK");
-            return res.status(500).json({ message: "DB error", err: err2.message });
+            return res.status(400).json({ message: "Invalid unit price" });
           }
 
-          remaining -= 1;
-          if (remaining === 0) {
-            setSalesTotal(salesId, total, (err3) => {
-              if (err3) {
-                db.run("ROLLBACK");
-                return res.status(500).json({ message: "DB error", err: err3.message });
-              }
-              db.run("COMMIT");
-              return res.status(201).json({ message: "Sales order created", id: salesId, total_amount: total });
-            });
-          }
-        });
+          total += quantity * unitPrice;
+
+          addSalesItem(salesId, product_id, quantity, unitPrice, (err2) => {
+            if (failed) return;
+            if (err2) {
+              failed = true;
+              db.run("ROLLBACK");
+              return res.status(500).json({ message: "DB error", err: err2.message });
+            }
+
+            remaining -= 1;
+            if (remaining === 0) {
+              setSalesTotal(salesId, total, (err3) => {
+                if (err3) {
+                  db.run("ROLLBACK");
+                  return res.status(500).json({ message: "DB error", err: err3.message });
+                }
+                db.run("COMMIT");
+                return res.status(201).json({ message: "Sales order created", id: salesId, total_amount: total });
+              });
+            }
+          });
+        };
+
+        // If client omits price, default to product selling price (source of truth).
+        if (priceRaw === undefined || priceRaw === null || priceRaw === "") {
+          return getProductSellPrice(product_id, (errPrice, price) => {
+            if (failed) return;
+            if (errPrice) {
+              failed = true;
+              db.run("ROLLBACK");
+              return res.status(400).json({ message: errPrice.message });
+            }
+            finalizeLine(price);
+          });
+        }
+
+        finalizeLine(Number(priceRaw));
       });
     });
   });
