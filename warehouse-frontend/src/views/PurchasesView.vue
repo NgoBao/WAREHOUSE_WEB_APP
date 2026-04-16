@@ -28,6 +28,29 @@ const lineItems = ref([{ product_id: '', quantity: '', price: '' }])
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
+function getProductById(id) {
+  const n = Number(id)
+  if (!n || Number.isNaN(n)) return null
+  return products.value.find((p) => Number(p?.id) === n) ?? null
+}
+
+function applyDefaultUnitPrice(it) {
+  const p = getProductById(it?.product_id)
+  if (!p) return
+  // Purchase orders should default to the product's buying cost.
+  const unit = Number(p.cost)
+  if (Number.isNaN(unit)) return
+  it.price = String(unit)
+}
+
+function lineTotal(it) {
+  const qty = Number(it?.quantity)
+  const unit = Number(it?.price)
+  if (!qty || Number.isNaN(qty) || qty < 0) return 0
+  if (Number.isNaN(unit) || unit < 0) return 0
+  return qty * unit
+}
+
 function formatMoney(v) {
   return money.format(Number(v) || 0)
 }
@@ -128,7 +151,6 @@ async function submitCreate() {
   for (const it of lineItems.value) {
     const product_id = Number(it.product_id)
     const quantity = Number(it.quantity)
-    const price = Number(it.price)
     if (!product_id || Number.isNaN(product_id)) {
       formError.value = 'Each line needs a product.'
       return
@@ -137,7 +159,14 @@ async function submitCreate() {
       formError.value = 'Each line needs a quantity of at least 1.'
       return
     }
-    if (!price || Number.isNaN(price) || price < 0) {
+    let price = Number(it.price)
+    if (!it.price || Number.isNaN(price)) {
+      // If user didn't enter a price, use the product's cost.
+      const p = getProductById(product_id)
+      price = Number(p?.cost)
+      if (!Number.isNaN(price)) it.price = String(price)
+    }
+    if (Number.isNaN(price) || price < 0) {
       formError.value = 'Each line needs a valid unit price.'
       return
     }
@@ -281,14 +310,27 @@ onMounted(load)
           <div v-for="(it, idx) in lineItems" :key="idx" class="line-row">
             <div class="field">
               <label class="field__label" :for="`po-prod-${idx}`">Product</label>
-              <select :id="`po-prod-${idx}`" v-model="it.product_id" class="field__input">
+              <select
+                :id="`po-prod-${idx}`"
+                v-model="it.product_id"
+                class="field__input"
+                @change="applyDefaultUnitPrice(it)"
+              >
                 <option disabled value="">Select</option>
                 <option v-for="p in products" :key="p.id" :value="String(p.id)">{{ p.name }} (#{{ p.id }})</option>
               </select>
             </div>
             <div class="field">
               <label class="field__label" :for="`po-qty-${idx}`">Qty</label>
-              <input :id="`po-qty-${idx}`" v-model="it.quantity" type="number" min="1" step="1" class="field__input" />
+              <input
+                :id="`po-qty-${idx}`"
+                v-model="it.quantity"
+                type="number"
+                min="1"
+                step="1"
+                class="field__input"
+                @change="applyDefaultUnitPrice(it)"
+              />
             </div>
             <div class="field">
               <label class="field__label" :for="`po-price-${idx}`">Unit price</label>
@@ -299,6 +341,16 @@ onMounted(load)
                 min="0"
                 step="0.01"
                 class="field__input"
+              />
+            </div>
+            <div class="field">
+              <label class="field__label" :for="`po-total-${idx}`">Line total</label>
+              <input
+                :id="`po-total-${idx}`"
+                :value="formatMoney(lineTotal(it))"
+                class="field__input"
+                readonly
+                tabindex="-1"
               />
             </div>
             <button
@@ -551,7 +603,7 @@ th {
 
 .line-row {
   display: grid;
-  grid-template-columns: 1fr 100px 120px auto;
+  grid-template-columns: 1fr 100px 120px 140px auto;
   gap: 0.65rem;
   align-items: end;
   margin-bottom: 0.65rem;
