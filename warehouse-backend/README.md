@@ -14,6 +14,16 @@ cd warehouse-backend
 npm install
 ```
 
+## Automated tests
+
+Integration tests exercise the real HTTP stack (`supertest`) against an **in-memory** SQLite database (see `test/api.integration.test.js`). They assert behavior engineers rely on: login failures, JWT issuance, **401** without a token, **403** when staff hits admin-only routes, **product create** for admins, **insufficient stock** on sale completion, and **inventory increase** after purchase receive.
+
+```bash
+npm test
+```
+
+Tests set `NODE_ENV=test`, `WAREHOUSE_DB_PATH=:memory:`, and `JWT_SECRET` internally; they do **not** read your `.env` or touch `warehouse.db`.
+
 ## Environment variables
 
 Create a `.env` file in `warehouse-backend/`:
@@ -27,6 +37,7 @@ Notes:
 
 - **`PORT`**: API port (defaults to `5000` if not set).
 - **`JWT_SECRET`**: used to sign/verify auth tokens (required for login and protected routes).
+- **`WAREHOUSE_DB_PATH`** (optional): SQLite file path or `:memory:`. Defaults to `warehouse.db` in this package directory (see `config/db.js`). The normal dev server does not need this set.
 
 If you don’t want to create it manually, you can copy the example:
 

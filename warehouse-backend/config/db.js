@@ -1,8 +1,13 @@
+const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
 
-const db = new sqlite3.Database("./warehouse.db", (err) => {
+const dbFile = process.env.WAREHOUSE_DB_PATH || path.join(__dirname, "..", "warehouse.db");
+const isMemory = dbFile === ":memory:";
+const quiet = process.env.NODE_ENV === "test" || isMemory;
+
+const db = new sqlite3.Database(dbFile, (err) => {
   if (err) console.error("SQLite connect error:", err.message);
-  else console.log("Connected to SQLite database (warehouse.db)");
+  else if (!quiet) console.log(`Connected to SQLite database (${isMemory ? ":memory:" : dbFile})`);
 });
 
 // Helpful: enforce foreign keys in SQLite
